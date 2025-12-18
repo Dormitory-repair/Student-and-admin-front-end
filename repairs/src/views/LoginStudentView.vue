@@ -51,7 +51,6 @@ export default {
     handleLogin() {
       console.log("登录中：", this.form);
 
-      // TODO：你们后端接口写好后在这里调用 API
       // this.$axios.post('/api/login', this.form).then(res => {...})
       this.$router.push("/student/repairhall");
       this.$message.success("登录成功");
