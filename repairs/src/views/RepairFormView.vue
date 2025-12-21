@@ -11,8 +11,13 @@
       <el-form :model="form" label-width="100px">
 
         <el-form-item label="账号">
-          <el-input v-model="form.account" placeholder="请输入学号"></el-input>
+          <el-input v-model="form.account" placeholder="请输入学号" disabled></el-input>
         </el-form-item>
+
+        <el-form-item label="姓名">
+          <el-input v-model="form.name" placeholder="请输入姓名" ></el-input>
+        </el-form-item>
+
 
         <el-form-item label="联系方式">
           <el-input v-model="form.phone" placeholder="请输入手机号"></el-input>
@@ -20,9 +25,9 @@
 
         <el-form-item label="生活区">
           <el-select v-model="form.area" placeholder="请选择生活区">
-            <el-option label="钱江湾生活园区" value="qjw" />
-            <el-option label="金沙港生活园区" value="jsg" />
-             <el-option label="教工路地区" value="jgl" />
+            <el-option label="钱江湾生活园区" value="钱江湾生活园区" />
+            <el-option label="金沙港生活园区" value="金沙港生活园区" />
+             <el-option label="教工路地区" value="教工路地区" />
           </el-select>
         </el-form-item>
 
@@ -64,9 +69,11 @@
         <!-- 上传图片 -->
         <el-form-item label="上传图片">
           <el-upload
-            action="#"
             list-type="picture-card"
             :auto-upload="false"
+            :file-list="fileList"
+            :on-change="handleFileChange"
+            :on-remove="handleFileRemove"
           >
             <i class="el-icon-plus"></i>
           </el-upload>
@@ -89,6 +96,7 @@ export default {
     return {
       form: {
         account: "",
+        name: "",
         phone: "",
         area: "",
         building: "",
@@ -97,6 +105,7 @@ export default {
         item: "",
         desc: ""
       },
+      fileList: [] ,
       categoryMap: {
         electric: {
           name: "电工类",
@@ -138,15 +147,66 @@ export default {
   },
   mounted() {
     this.form.category = this.categoryName;
+    const student = localStorage.getItem("student");
+    if (student) {
+      const user = JSON.parse(student);
+      this.form.account = user.account || "";
+    }
   },
   methods: {
     goHall() {
       this.$router.push("/student/repairhall");
     },
     submitForm() {
-      console.log("提交数据：", this.form);
-      this.$message.success("报修提交成功！");
-    }
+      const formData = new FormData();
+
+      // 普通字段
+      formData.append("reporterAccount", this.form.account);
+      formData.append("reporterName", this.form.name);
+      formData.append("reporterPhone", this.form.phone);
+      formData.append("livingArea", this.form.area);
+      formData.append("building", this.form.building);
+      formData.append("roomNumber", this.form.room);
+      formData.append("repairCategory", this.categoryName);
+      formData.append("specificItem", this.form.item);
+      formData.append("problemDescription", this.form.desc);
+
+      // 图片（重点）
+      this.fileList.forEach(file => {
+        formData.append("images", file.raw);
+      });
+
+      console.log("===== FormData 内容 =====");
+      for (let pair of formData.entries()) {
+        if (pair[1] instanceof File) {
+          console.log(pair[0] + ": ", pair[1].name, pair[1].size + " bytes");
+        } else {
+          console.log(pair[0] + ": " + pair[1]);
+        }
+      }
+
+
+      this.$axios.post("/addorder", formData, {
+        headers: {
+          "Content-Type": "multipart/form-data"
+        }
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.$message.success("报修提交成功！");
+          this.$router.push("/student/repairhall");
+        } else {
+          this.$message.error(res.data.msg || "提交失败");
+        }
+      }).catch(() => {
+        this.$message.error("服务器错误");
+      });
+    },
+    handleFileChange(file, fileList) {
+      this.fileList = fileList;
+    },
+    handleFileRemove(file, fileList) {
+      this.fileList = fileList;
+    },
   }
 };
 </script>

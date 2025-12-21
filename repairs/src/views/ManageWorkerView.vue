@@ -41,16 +41,13 @@
           <div class="search-area">
             <el-input
               v-model="searchKey"
-              placeholder="请输入工人账号"
+              placeholder="请输入员工ID"
               clearable
               size="small"
               class="search-input"
             />
-            <el-button
-              type="primary"
-              size="small"
-              icon="el-icon-search"
-            >
+            <el-button type="primary" size="small" icon="el-icon-search"
+              @click="searchWorker">
               搜索
             </el-button>
           </div>
@@ -66,13 +63,15 @@
         </div>
 
         <!-- 表格 -->
-        <el-table :data="filteredWorkers" border stripe>
+        <el-table :data="workerList" border stripe>
           <el-table-column type="index" label="序号" width="60" align="center" />
-          <el-table-column prop="jobId" label="工号" align="center" />
-          <el-table-column prop="account" label="工人账号" align="center" />
-          <el-table-column prop="name" label="姓名" align="center" />
+          <el-table-column prop="name" label="员工ID" align="center" />
           <el-table-column prop="phone" label="电话" align="center" />
+          <el-table-column prop="work_type" label="工种" align="center" />
+          <el-table-column prop="hire_date" label="入职日期" align="center" />
+          <el-table-column prop="monthly_orders" label="本月接单" align="center" />
           <el-table-column prop="password" label="密码" align="center" />
+          <el-table-column prop="created_time" label="创建时间" align="center" />  
 
           <el-table-column label="操作" width="260" align="center">
             <template slot-scope="scope">
@@ -88,24 +87,29 @@
             </template>
           </el-table-column>
         </el-table>
-       
-        <!-- 编辑工人弹窗 -->
+
+        <!-- 编辑弹窗 -->
         <el-dialog title="编辑工人信息" :visible.sync="editDialogVisible" width="420px">
           <el-form :model="editForm" label-width="90px">
-            <el-form-item label="工号">
-              <el-input v-model="editForm.jobId" disabled />
-            </el-form-item>
-            <el-form-item label="工人账户">
-              <el-input v-model="editForm.account" disabled />
-            </el-form-item>
-            <el-form-item label="姓名">
-              <el-input v-model="editForm.name" />
+            <el-form-item label="员工ID">
+              <el-input v-model="editForm.employeeId" disabled />
             </el-form-item>
             <el-form-item label="电话">
               <el-input v-model="editForm.phone" />
             </el-form-item>
+            <el-form-item label="工种">
+              <el-input v-model="editForm.jobType" />
+            </el-form-item>
+            <el-form-item label="入职日期">
+              <el-date-picker
+                v-model="editForm.entryDate"
+                type="date"
+                placeholder="选择日期"
+                value-format="yyyy-MM-dd"
+              />
+            </el-form-item>
             <el-form-item label="新密码">
-              <el-input v-model="editForm.password" type="password" />
+              <el-input v-model="editForm.password" type="password"  show-password/>
             </el-form-item>
           </el-form>
 
@@ -115,26 +119,30 @@
           </span>
         </el-dialog>
 
-        <!-- 添加工人弹窗 -->
+        <!-- 添加弹窗 -->
         <el-dialog title="添加维修工人" :visible.sync="addDialogVisible" width="420px">
           <el-form :model="addForm" label-width="90px">
-            <el-form-item label="工号">
-              <el-input v-model="addForm.jobId" />
-            </el-form-item>
-            <el-form-item label="工人账户">
-              <el-input v-model="addForm.account" />
-            </el-form-item>
-            <el-form-item label="姓名">
-              <el-input v-model="addForm.name" />
+            <el-form-item label="员工ID">
+              <el-input v-model="addForm.employeeId" />
             </el-form-item>
             <el-form-item label="电话">
               <el-input v-model="addForm.phone" />
             </el-form-item>
+            <el-form-item label="工种">
+              <el-input v-model="addForm.jobType" />
+            </el-form-item>
+            <el-form-item label="入职日期">
+              <el-date-picker
+                v-model="addForm.entryDate"
+                type="date"
+                value-format="yyyy-MM-dd"
+              />
+            </el-form-item>
             <el-form-item label="密码">
-              <el-input v-model="addForm.password" type="password" />
+              <el-input v-model="addForm.password" type="password" show-password />
             </el-form-item>
             <el-form-item label="确认密码">
-              <el-input v-model="addForm.confirmPassword" type="password" />
+              <el-input v-model="addForm.confirmPassword" type="password" show-password />
             </el-form-item>
           </el-form>
 
@@ -149,19 +157,20 @@
 </template>
 
 <script>
-  export default {
+export default {
   name: "ManageWorkerView",
   data() {
     return {
       searchKey: "",
       workerList: [
         {
-          id: 1,
-          jobId: "W001",
-          account: "worker01",
-          name: "张师傅",
-          phone: "13800001111",
-          password: "123456"
+          // id: 1,
+          // employeeId: "EMP001",
+          // phone: "13800001111",
+          // jobType: "水电维修",
+          // entryDate: "2023-06-01",
+          // monthlyOrders: 12,
+          // password: "123456"
         }
       ],
       editDialogVisible: false,
@@ -170,75 +179,162 @@
       addForm: {}
     };
   },
-  computed: {
-    filteredWorkers() {
-      if (!this.searchKey) return this.workerList;
-      return this.workerList.filter(w =>
-        w.account.includes(this.searchKey)
-      );
-    }
+  // computed: {
+  //   filteredWorkers() {
+  //     if (!this.searchKey) return this.workerList;
+  //     return this.workerList.filter(w =>
+  //       w.employeeId.includes(this.searchKey)
+  //     );
+  //   }
+  // },
+   mounted() {
+    this.loadWorkers();
   },
   methods: {
+     loadWorkers() {
+      this.$axios.get("/listworker").then(res => {
+        if (res.data.code === 1) {
+          this.workerList = res.data.data;
+        }
+      });
+    },
+    searchWorker() {
+      if (!this.searchKey) {
+        this.loadWorkers();
+        return;
+      }
+      this.$axios
+        .get("/searchworker", {
+          params: { name: this.searchKey }
+        })
+        .then(res => {
+          if (res.data.code === 1) {
+            this.workerList = res.data.data;
+          }
+        });
+    },
     handleAdd() {
       this.addForm = {
-        jobId: "",
-        account: "",
-        name: "",
+        employeeId: "",
         phone: "",
+        jobType: "",
+        entryDate: "",
+        monthlyOrders: 0,
         password: "",
         confirmPassword: ""
       };
       this.addDialogVisible = true;
     },
     handleEdit(row) {
-      this.editForm = { ...row, password: "" };
+      this.editForm = {
+        id: row.id,
+        employeeId: row.name,
+        phone: row.phone,
+        jobType: row.work_type,
+        entryDate: row.hire_date,
+        password: ""
+      };
       this.editDialogVisible = true;
     },
     handleReset(row) {
-      row.password = "123456";
-      this.$message.success("密码已重置");
+      this.$confirm(
+        `确认将 ${row.name} 的密码重置为 123456 吗？`,
+        "提示",
+        {
+          type: "warning"
+        }
+      ).then(() => {
+      this.$axios.post("/update", {
+        name: row.name,
+        phone: row.phone,
+        workType: row.work_type,
+        hireDate: row.hire_date,
+        password: "123456"
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.$message.success("密码已重置为 123456");
+          this.loadWorkers();
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      });
+      })
+      .catch(() => {
+          this.$message.info("已取消重置");
+        });
     },
     handleDelete(row) {
-      this.workerList = this.workerList.filter(w => w.id !== row.id);
-      this.$message.success("删除成功");
+      this.$confirm("确认删除该工人吗？", "提示", {
+        type: "warning"
+      }).then(() => {
+        this.$axios.post("/deleteworker", { id: row.id }).then(res => {
+          if (res.data.code === 1) {
+            this.$message.success("删除成功");
+            this.loadWorkers();
+          } else {
+            this.$message.error("删除失败");
+          }
+        });
+      })
+      .catch(() => {
+          this.$message.info("已取消删除");
+      });
     },
     confirmEdit() {
-      Object.assign(
-        this.workerList.find(w => w.id === this.editForm.id),
-        this.editForm
-      );
-      this.$message.success("修改成功");
-      this.editDialogVisible = false;
+      this.$axios.post("/update", {
+        name: this.editForm.employeeId,
+        phone: this.editForm.phone,
+        workType: this.editForm.jobType,
+        hireDate: this.editForm.entryDate,
+        password: this.editForm.password
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.$message.success("修改成功");
+          this.editDialogVisible = false;
+          this.loadWorkers();
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      });
     },
     confirmAdd() {
       if (this.addForm.password !== this.addForm.confirmPassword) {
         this.$message.error("两次密码不一致");
         return;
       }
-      this.workerList.push({
-        ...this.addForm,
-        id: Date.now()
+
+      this.$axios.post("/addworker", {
+        name: this.addForm.employeeId,
+        phone: this.addForm.phone,
+        workType: this.addForm.jobType,
+        hireDate: this.addForm.entryDate,
+        password: this.addForm.password,
+        checkPassword: this.addForm.confirmPassword
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.$message.success("添加成功");
+          this.addDialogVisible = false;
+          this.loadWorkers();
+        } else {
+          this.$message.error(res.data.msg);
+        }
       });
-      this.$message.success("添加成功");
-      this.addDialogVisible = false;
     },
 
-
-    // 路由跳转
     goStudent() {
-        if (this.$route.path !== '/manage/student') {
-            this.$router.push('/manage/student')
-        }
+      if (this.$route.path !== "/manage/student") {
+        this.$router.push("/manage/student");
+      }
     },
     goWorker() {
-        if (this.$route.path !== '/manage/worker') {
-            this.$router.push('/manage/worker')
-        }
+      if (this.$route.path !== "/manage/worker") {
+        this.$router.push("/manage/worker");
+      }
     },
     goAdmin() {
-        if (this.$route.path !== '/manage/admin') {
-            this.$router.push('/manage/admin')
-        }
+      if (this.$route.path !== "/manage/admin") {
+        this.$router.push("/manage/admin");
+      }
     },
     goLogin() {
       this.$router.push("/manager/login");
@@ -246,6 +342,7 @@
   }
 };
 </script>
+
 
 <style scoped>
 .admin-layout {

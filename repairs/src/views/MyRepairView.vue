@@ -1,12 +1,10 @@
 <template>
   <div class="my-repair-container">
-    <!-- 顶部 -->
     <div class="header">
       <h1 class="title">我的报修</h1>
       <span class="back-link" @click="goHall">← 返回报修大厅</span>
     </div>
 
-    <!-- 筛选栏 -->
     <div class="filter-bar">
       <el-radio-group v-model="filterStatus" size="small">
         <el-radio-button label="all">全部</el-radio-button>
@@ -15,7 +13,6 @@
       </el-radio-group>
     </div>
 
-    <!-- 报修记录 -->
     <div class="card-list">
       <el-empty
         v-if="filteredList.length === 0"
@@ -24,40 +21,47 @@
 
       <el-card
         v-for="item in filteredList"
-        :key="item.id"
+        :key="item.orderId"
         class="repair-card"
         shadow="hover"
       >
-        <!-- 卡片头 -->
         <div class="card-header">
           <div>
-            <b>{{ item.category }}</b> - {{ item.subItem }}
+            <b>{{ item.repairCategory }}</b> - {{ item.specificItem }}
           </div>
 
           <el-tag
-            :type="item.status === 'done' ? 'success' : 'warning'"
+            :type="item.isCompleted === 1 ? 'success' : 'warning'"
             size="mini"
           >
-            {{ item.status === 'done' ? '已完成' : '进行中' }}
+            {{ item.isCompleted === 1 ? '已完成' : '进行中' }}
           </el-tag>
         </div>
 
-        <!-- 内容 -->
         <div class="card-content">
-          <p><span>账号：</span>{{ item.account }}</p>
-          <p><span>联系方式：</span>{{ item.phone }}</p>
+          <p><span>账号：</span>{{ item.reporterAccount }}</p>
+          <p><span>姓名：</span>{{ item.reporterName }}</p>
+          <p><span>联系方式：</span>{{ item.reporterPhone }}</p>
           <p>
             <span>位置：</span>
-            {{ item.area }} {{ item.building }} {{ item.room }}
+            {{ item.livingArea }} {{ item.building }} {{ item.roomNumber }}
           </p>
-          <p><span>问题描述：</span>{{ item.desc }}</p>
+          <p><span>问题描述：</span>{{ item.problemDescription }}</p>
+          <p v-if="item.repairImages">
+            <span>图片：</span>
+            <span
+              v-for="(img, index) in item.repairImages.split(',')"
+              :key="index"
+            >
+              <img :src="`http://localhost:8080${img}`" alt="repair" style="width:300px; margin-right:5px;" />
+            </span>
+          </p>
         </div>
 
-        <!-- 时间 -->
         <div class="card-time">
-          <p>提交时间：{{ item.submitTime }}</p>
-          <p v-if="item.finishTime">
-            完成时间：{{ item.finishTime }}
+          <p>提交时间：{{ formatDate(item.repairTime) }}</p>
+          <p v-if="item.completedTime">
+            完成时间：{{ formatDate(item.completedTime) }}
           </p>
         </div>
       </el-card>
@@ -71,69 +75,57 @@ export default {
   data() {
     return {
       filterStatus: "all",
-      repairList: [
-        {
-          id: 1,
-          category: "电工类",
-          subItem: "灯具",
-          account: "2023123456",
-          phone: "13800001111",
-          area: "东区",
-          building: "3号楼",
-          room: "305",
-          desc: "寝室灯不亮，可能是灯管坏了",
-          status: "processing",
-          submitTime: "2025-04-10 14:32",
-          finishTime: null
-        },
-        {
-          id: 2,
-          category: "水工类",
-          subItem: "水龙头",
-          account: "2023123456",
-          phone: "13800001111",
-          area: "东区",
-          building: "3号楼",
-          room: "305",
-          desc: "水龙头漏水，关不紧",
-          status: "done",
-          submitTime: "2025-04-05 09:18",
-          finishTime: "2025-04-06 16:40"
-        },
-        {
-          id: 3,
-          category: "网络类",
-          subItem: "无法上网",
-          account: "2023123456",
-          phone: "13800001111",
-          area: "西区",
-          building: "1号楼",
-          room: "218",
-          desc: "插上网线无法上网，指示灯不亮",
-          status: "done",
-          submitTime: "2025-03-28 20:10",
-          finishTime: "2025-03-29 11:05"
-        }
-      ]
+      repairList: []
     };
   },
   computed: {
     filteredList() {
-      if (this.filterStatus === "all") {
-        return this.repairList;
-      }
-      return this.repairList.filter(
-        item => item.status === this.filterStatus
-      );
+      if (this.filterStatus === "all") return this.repairList;
+      return this.repairList.filter(item => {
+        const status = item.isCompleted === 1 ? "done" : "processing";
+        return status === this.filterStatus;
+      });
     }
+  },
+  mounted() {
+    this.fetchOrders();
   },
   methods: {
     goHall() {
       this.$router.push("/student/repairhall");
+    },
+    fetchOrders() {
+      const student = localStorage.getItem("student");
+      if (!student) return;
+      const account = JSON.parse(student).account;
+
+      this.$axios
+        .get("/myorders", { params: { account } })
+        .then(res => {
+          if (res.data.code === 1) {
+            this.repairList = res.data.data || [];
+          } else {
+            this.$message.error(res.data.msg || "获取报修记录失败");
+          }
+        })
+        .catch(() => {
+          this.$message.error("服务器错误");
+        });
+    },
+    formatDate(datetime) {
+      if (!datetime) return "";
+      const date = new Date(datetime);
+      const y = date.getFullYear();
+      const m = String(date.getMonth() + 1).padStart(2, "0");
+      const d = String(date.getDate()).padStart(2, "0");
+      const h = String(date.getHours()).padStart(2, "0");
+      const min = String(date.getMinutes()).padStart(2, "0");
+      return `${y}-${m}-${d} ${h}:${min}`;
     }
   }
 };
 </script>
+
 
 <style scoped>
 .my-repair-container {

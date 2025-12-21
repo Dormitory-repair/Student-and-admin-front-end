@@ -6,7 +6,7 @@
       <el-form :model="form" class="login-form">
         <!-- 账号 -->
         <el-form-item label="账号">
-          <el-input v-model="form.username" placeholder="请输入账号"></el-input>
+          <el-input v-model="form.account" placeholder="请输入您的学号"></el-input>
         </el-form-item>
 
         <!-- 密码 -->
@@ -51,7 +51,7 @@ export default {
   data() {
     return {
       form: {
-        username: "",
+        account: "",
         password: "",
         confirmPassword: ""
       }
@@ -59,19 +59,34 @@ export default {
   },
   methods: {
     handleRegister() {
+      if (!this.form.account || !this.form.password) {
+        this.$message.error("账号或密码不能为空");
+        return;
+      }
+
       if (this.form.password !== this.form.confirmPassword) {
         this.$message.error("两次输入的密码不一致");
         return;
       }
 
-      console.log("注册中：", this.form);
+      this.$axios.post("/register", {
+        account: this.form.account,
+        password: this.form.password,
+        checkPassword: this.form.confirmPassword
+      }).then(res => {
+        const data = res.data;
 
-      // TODO：注册接口
-      // this.$axios.post('/api/register', this.form).then(res => {...})
-
-      this.$message.success("注册成功");
-      this.$router.push("/student/login");
+        if (data.code === 1) {
+          this.$message.success(data.msg || "注册成功");
+          this.$router.push("/student/login");
+        } else {
+          this.$message.error(data.msg || "注册失败");
+        }
+      }).catch(() => {
+        this.$message.error("服务器异常");
+      });
     },
+
     goLogin() {
       this.$router.push("/student/login");
     }

@@ -6,7 +6,7 @@
       <el-form :model="form" class="login-form">
         <!-- 账号输入 -->
         <el-form-item label="管理员账号">
-          <el-input v-model="form.username" placeholder="请输入管理员账号"></el-input>
+          <el-input v-model="form.account" placeholder="请输入管理员账号"></el-input>
         </el-form-item>
 
         <!-- 密码输入 -->
@@ -41,19 +41,35 @@ export default {
   data() {
     return {
       form: {
-        username: "",
+        account: "",
         password: ""
       }
     };
   },
   methods: {
     handleLogin() {
-      console.log("管理员登录：", this.form);
+      if (!this.form.account || !this.form.password) {
+        this.$message.warning("请输入账号和密码");
+        return;
+      }
 
-      // 后端接口示例：
-      // this.$axios.post('/api/admin/login', this.form).then(res => {...})
-      this.$router.push("/manage/student");
-      this.$message.success("管理员登录成功");
+      this.$axios.post("/loginadmin", {
+        account: this.form.account,
+        password: this.form.password
+      }).then(res => {
+        if (res.data.code === 1) {
+          // 登录成功
+          this.$message.success("管理员登录成功");
+
+          // 保存管理员信息（后续鉴权用）
+          localStorage.setItem("admin", JSON.stringify(res.data.data));
+
+          // 跳转后台首页
+          this.$router.push("/manage/student");
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      });
     },
     goStudentLogin() {
       this.$router.push("/student/login");

@@ -69,7 +69,7 @@
 
         <!-- 管理员表格 -->
         <el-table
-          :data="filteredAdmins"
+          :data="adminList"
           border
           stripe
           style="width: 100%">
@@ -88,6 +88,12 @@
             prop="password"
             label="密码"
             align="center"/>
+
+          <el-table-column
+            prop="created_time"
+            label="创建时间"
+            align="center"
+/>
 
           <el-table-column
             label="操作"
@@ -136,6 +142,7 @@
                 v-model="editForm.oldPassword"
                 type="password"
                 placeholder="请输入旧密码"
+                show-password
             />
             </el-form-item>
 
@@ -144,6 +151,7 @@
                 v-model="editForm.newPassword"
                 type="password"
                 placeholder="请输入新密码"
+                show-password
             />
             </el-form-item>
         </el-form>
@@ -170,6 +178,7 @@
                 v-model="addForm.password"
                 type="password"
                 placeholder="请输入密码"
+                show-password
             />
             </el-form-item>
 
@@ -178,6 +187,7 @@
                 v-model="addForm.confirmPassword"
                 type="password"
                 placeholder="请再次输入密码"
+                show-password
             />
             </el-form-item>
         </el-form>
@@ -200,10 +210,10 @@ export default {
     return {
       searchKey: "",
       adminList: [
-        { id: 1, account: "admin01", password: "123456" },
-        { id: 2, account: "admin02", password: "123456" },
-        { id: 3, account: "admin03", password: "123456" },
-        { id: 4, account: "admin04", password: "123456" }
+        // { id: 1, account: "admin01", password: "123456" },
+        // { id: 2, account: "admin02", password: "123456" },
+        // { id: 3, account: "admin03", password: "123456" },
+        // { id: 4, account: "admin04", password: "123456" }
       ],
       editDialogVisible: false,
       addDialogVisible: false,
@@ -224,15 +234,39 @@ export default {
   },
   computed: {
     filteredAdmins() {
-      if (!this.searchKey) return this.adminList;
-      return this.adminList.filter(item =>
-        item.account.includes(this.searchKey)
-      );
+      return this.adminList;
     }
   },
+  created() {
+  this.loadAdmins();
+  },
   methods: {
+     loadAdmins() {
+      this.$axios.get("/listadmin").then(res => {
+        console.log("listadmin 原始返回：", res.data);
+        console.log("listadmin data 类型：", Array.isArray(res.data.data), res.data.data);
+
+        if (res.data.code === 1) {
+          this.adminList = res.data.data;
+          console.log("adminList 设置后：", this.adminList);
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      });
+    },
     handleSearch() {
-      this.$message.success("搜索完成");
+      this.$axios.get("/searchadmin", {
+        params: {
+          account: this.searchKey
+        }
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.adminList = res.data.data;
+          this.$message.success("搜索完成");
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      });
     },
     handleAdd() {
         this.addForm = {
@@ -267,71 +301,65 @@ export default {
         "警告",
         { type: "error" }
       ).then(() => {
-        this.adminList = this.adminList.filter(
-          item => item.id !== row.id
-        );
-        this.$message.success("删除成功");
-      });
+        this.$axios.post("/deleteadmin", {
+          id: row.id
+        }).then(res => {
+          if (res.data.code === 1) {
+            this.$message.success("删除成功");
+            this.loadAdmins();
+          } else {
+            this.$message.error(res.data.msg);
+          }
+        });
+      })
+      .catch(() => {
+          this.$message.info("已取消删除");
+        });
     },
-    confirmEdit() {
-    const { id, oldPassword, newPassword } = this.editForm;
 
-    if (!oldPassword || !newPassword) {
+    confirmEdit() {
+      const { id, oldPassword, newPassword } = this.editForm;
+
+      if (!oldPassword || !newPassword) {
         this.$message.warning("请填写旧密码和新密码");
         return;
-    }
+      }
 
-    // 找到当前管理员
-    const target = this.adminList.find(item => item.id === id);
-
-    if (!target) {
-        this.$message.error("管理员不存在");
-        return;
-    }
-
-    // 校验旧密码
-    if (target.password !== oldPassword) {
-        this.$message.error("旧密码不正确");
-        return;
-    }
-
-    // 新旧密码不能一致
-    if (oldPassword === newPassword) {
-        this.$message.warning("新密码不能与旧密码相同");
-        return;
-    }
-
-    // 修改密码
-    target.password = newPassword;
-
-    this.$message.success("密码修改成功");
-    this.editDialogVisible = false;
+      this.$axios.post("/updateAdminPassword", {
+        id,
+        oldPassword,
+        newPassword
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.$message.success("密码修改成功");
+          this.editDialogVisible = false;
+          this.loadAdmins();
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      });
     },
-
-
     confirmAdd() {
-    if (
-        !this.addForm.account ||
-        !this.addForm.password ||
-        !this.addForm.confirmPassword
-    ) {
+      const { account, password, confirmPassword } = this.addForm;
+
+      if (!account || !password || !confirmPassword) {
         this.$message.warning("请填写完整信息");
         return;
-    }
+      }
 
-    if (this.addForm.password !== this.addForm.confirmPassword) {
-        this.$message.error("两次密码不一致");
-        return;
-    }
-
-    this.studentList.push({
-        id: Date.now(),
-        account: this.addForm.account,
-        password: this.addForm.password
-    });
-
-    this.$message.success("添加成功");
-    this.addDialogVisible = false;
+      this.$axios.post("/addadmin", {
+        account,
+        password,
+        checkPassword: confirmPassword
+      }).then(res => {
+        if (res.data.code === 1) {
+          this.$message.success("添加成功");
+          this.addDialogVisible = false;
+          this.loadAdmins(); // 重新拉取
+        } else {
+          this.$message.error(res.data.msg);
+        }
+      });
     },
 
 

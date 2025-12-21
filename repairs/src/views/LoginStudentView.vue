@@ -6,7 +6,7 @@
       <el-form :model="form" class="login-form">
         <!-- 账号 -->
         <el-form-item label="账号">
-          <el-input v-model="form.username" placeholder="请输入账号"></el-input>
+          <el-input v-model="form.account" placeholder="请输入账号"></el-input>
         </el-form-item>
 
         <!-- 密码 -->
@@ -42,19 +42,32 @@ export default {
   data() {
     return {
       form: {
-        username: "",
+        account: "",
         password: ""
       }
     };
   },
   methods: {
     handleLogin() {
-      console.log("登录中：", this.form);
+      if(!this.form.account || !this.form.password){
+        this.$message.error("账号或密码不能为空");
+        return;
+      }
 
-      // TODO：你们后端接口写好后在这里调用 API
-      // this.$axios.post('/api/login', this.form).then(res => {...})
-      this.$router.push("/student/repairhall");
-      this.$message.success("登录成功");
+      this.$axios.post("/login", this.form)
+        .then(res => {
+          const data = res.data;
+          if(data.code === 1){
+            this.$message.success(data.msg || "登录成功");
+            localStorage.setItem("student", JSON.stringify(data.data));
+            this.$router.push("/student/repairhall");
+          } else {
+            this.$message.error(data.msg || "登录失败");
+          }
+        })
+        .catch(() => {
+          this.$message.error("服务器异常");
+        });
     },
     goRegister() {
       this.$router.push("/student/register");
