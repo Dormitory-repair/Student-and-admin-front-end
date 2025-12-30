@@ -76,16 +76,46 @@ const router = new VueRouter({
 
 // 全局路由守卫
 router.beforeEach((to, from, next) => {
-  const publicPages = ['/student/login', '/manager/login', '/student/register'];
-  const authRequired = !publicPages.includes(to.path);
-  const token = localStorage.getItem('token');
+  const studentToken = localStorage.getItem("student_token");
+  const adminToken = localStorage.getItem("admin_token");
 
-  if (authRequired && !token) {
-    // 未登录且访问非公开页面，重定向到学生登录
-    next('/student/login');
-  } else {
-    next(); // 已登录或访问公开页面，放行
+  // 公共页面
+  const publicPages = [
+    "/student/login",
+    "/student/register",
+    "/manager/login"
+  ];
+
+  if (publicPages.includes(to.path)) {
+    return next();
   }
+
+  // 管理员页面
+  if (to.path.startsWith("/manage")) {
+    if (!adminToken) {
+      // 如果已经在登录页，就不要再跳转
+      if (to.path !== "/manager/login") {
+        return next("/manager/login");
+      } else {
+        return next();
+      }
+    }
+    return next();
+  }
+
+  // 学生页面
+   if (to.path.startsWith("/student")) {
+    if (!studentToken) {
+      if (to.path !== "/student/login") {
+        return next("/student/login");
+      } else {
+        return next();
+      }
+    }
+    return next();
+  }
+
+  next();
 });
 
 

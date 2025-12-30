@@ -5,7 +5,7 @@
       <h3 class="side-title">管理员后台</h3>
 
       <el-menu
-        default-active="student"
+        default-active="admin"
         class="side-menu"
         background-color="#304156"
         text-color="#fff"
@@ -380,7 +380,7 @@ export default {
         }
     },
     goLogin() {
-      localStorage.removeItem("token");
+      localStorage.removeItem("admin_token");
       this.$router.push("/manager/login");
     }
   }

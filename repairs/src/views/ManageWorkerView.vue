@@ -350,7 +350,7 @@ export default {
       }
     },
     goLogin() {
-      localStorage.removeItem("token");
+      localStorage.removeItem("admin_token");
       this.$router.push("/manager/login");
     }
   }

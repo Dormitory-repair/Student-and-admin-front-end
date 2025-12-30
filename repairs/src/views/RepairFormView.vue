@@ -151,7 +151,7 @@ export default {
   },
   mounted() {
     this.form.category = this.categoryName;
-    const token = localStorage.getItem("token");
+    const token = localStorage.getItem("student_token");
     if (token) {
       const decoded = jwtDecode(token);
       this.form.account = decoded.account;

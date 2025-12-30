@@ -62,7 +62,7 @@ export default {
           this.$message.success("管理员登录成功");
 
           // 保存管理员信息（后续鉴权用）
-          localStorage.setItem("token", res.data.data);
+          localStorage.setItem("admin_token", res.data.data);
 
           // 跳转后台首页
           this.$router.push("/manage/student");

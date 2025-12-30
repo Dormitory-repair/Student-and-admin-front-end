@@ -96,7 +96,7 @@ export default {
       this.$router.push("/student/repairhall");
     },
     fetchOrders() {
-        const token = localStorage.getItem("token");
+        const token = localStorage.getItem("student_token");
       if (!token) return;
 
       // 用 jwtDecode 解析 token

@@ -15,12 +15,16 @@ Vue.prototype.$axios = axios;
 // 添加请求拦截器
 axios.interceptors.request.use(
   (config) => {
-    // 从 localStorage 中获取 token
-    const token = localStorage.getItem('token');
-    if (token) {
-      // 在请求头中添加 token 字段
-      config.headers.token = token;
+    const adminToken = localStorage.getItem("admin_token");
+    const studentToken = localStorage.getItem("student_token");
+
+    // 管理端接口
+   if (adminToken) {
+      config.headers.token = adminToken; // 优先用管理员 token
+    } else if (studentToken) {
+      config.headers.token = studentToken;
     }
+
     return config;
   },
   (error) => {

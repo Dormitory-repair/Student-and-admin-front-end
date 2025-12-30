@@ -61,7 +61,7 @@ export default {
             this.$message.success(data.msg || "登录成功");
 
             // 存 token
-            localStorage.setItem("token", data.data);
+            localStorage.setItem("student_token", data.data);
 
             this.$router.push("/student/repairhall");
           } else {

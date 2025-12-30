@@ -256,7 +256,7 @@ export default {
     goWorker(){ if(this.$route.path!=='/manage/worker') this.$router.push('/manage/worker'); },
     goAdmin(){ if(this.$route.path!=='/manage/admin') this.$router.push('/manage/admin'); },
     goLogin(){ 
-      localStorage.removeItem("token");
+      localStorage.removeItem("admin_token");
       this.$router.push("/manager/login"); }
   }
 };
