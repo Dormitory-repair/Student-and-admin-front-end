@@ -108,6 +108,7 @@ export default {
       this.$router.push("/student/myrepair");
     },
     goLogin() {
+      localStorage.removeItem("token");
       this.$router.push("/student/login");
     }
   }

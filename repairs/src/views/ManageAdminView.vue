@@ -380,6 +380,7 @@ export default {
         }
     },
     goLogin() {
+      localStorage.removeItem("token");
       this.$router.push("/manager/login");
     }
   }

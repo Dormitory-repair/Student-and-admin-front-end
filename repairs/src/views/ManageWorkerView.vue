@@ -41,7 +41,7 @@
           <div class="search-area">
             <el-input
               v-model="searchKey"
-              placeholder="请输入员工ID"
+              placeholder="请输入员工姓名"
               clearable
               size="small"
               class="search-input"
@@ -65,7 +65,8 @@
         <!-- 表格 -->
         <el-table :data="workerList" border stripe>
           <el-table-column type="index" label="序号" width="60" align="center" />
-          <el-table-column prop="name" label="员工ID" align="center" />
+          <el-table-column prop="worker_code" label="员工ID" align="center" />
+          <el-table-column prop="name" label="姓名" align="center" />
           <el-table-column prop="phone" label="电话" align="center" />
           <el-table-column prop="work_type" label="工种" align="center" />
           <el-table-column prop="hire_date" label="入职日期" align="center" />
@@ -91,9 +92,13 @@
         <!-- 编辑弹窗 -->
         <el-dialog title="编辑工人信息" :visible.sync="editDialogVisible" width="420px">
           <el-form :model="editForm" label-width="90px">
-            <el-form-item label="员工ID">
-              <el-input v-model="editForm.employeeId" disabled />
+            <el-form-item label="姓名">
+              <el-input v-model="editForm.name" />
             </el-form-item>
+            <el-form-item label="员工ID">
+              <el-input v-model="editForm.worker_code" disabled />
+            </el-form-item>
+
             <el-form-item label="电话">
               <el-input v-model="editForm.phone" />
             </el-form-item>
@@ -122,8 +127,11 @@
         <!-- 添加弹窗 -->
         <el-dialog title="添加维修工人" :visible.sync="addDialogVisible" width="420px">
           <el-form :model="addForm" label-width="90px">
+            <el-form-item label="姓名">
+              <el-input v-model="addForm.name" />
+            </el-form-item>
             <el-form-item label="员工ID">
-              <el-input v-model="addForm.employeeId" />
+              <el-input v-model="addForm.worker_code" />
             </el-form-item>
             <el-form-item label="电话">
               <el-input v-model="addForm.phone" />
@@ -215,7 +223,8 @@ export default {
     },
     handleAdd() {
       this.addForm = {
-        employeeId: "",
+        name: "",
+        worker_code: "",
         phone: "",
         jobType: "",
         entryDate: "",
@@ -228,7 +237,8 @@ export default {
     handleEdit(row) {
       this.editForm = {
         id: row.id,
-        employeeId: row.name,
+        worker_code: row.worker_code,
+        name: row.name,
         phone: row.phone,
         jobType: row.work_type,
         entryDate: row.hire_date,
@@ -245,6 +255,7 @@ export default {
         }
       ).then(() => {
       this.$axios.post("/update", {
+        workerCode: row.worker_code,
         name: row.name,
         phone: row.phone,
         workType: row.work_type,
@@ -282,7 +293,8 @@ export default {
     },
     confirmEdit() {
       this.$axios.post("/update", {
-        name: this.editForm.employeeId,
+        workerCode: this.editForm.worker_code,
+        name: this.editForm.name,
         phone: this.editForm.phone,
         workType: this.editForm.jobType,
         hireDate: this.editForm.entryDate,
@@ -304,7 +316,8 @@ export default {
       }
 
       this.$axios.post("/addworker", {
-        name: this.addForm.employeeId,
+        name: this.addForm.name,
+        workerCode: this.addForm.worker_code,
         phone: this.addForm.phone,
         workType: this.addForm.jobType,
         hireDate: this.addForm.entryDate,
@@ -337,6 +350,7 @@ export default {
       }
     },
     goLogin() {
+      localStorage.removeItem("token");
       this.$router.push("/manager/login");
     }
   }

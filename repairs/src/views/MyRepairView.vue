@@ -70,6 +70,7 @@
 </template>
 
 <script>
+ import { jwtDecode } from "jwt-decode"; 
 export default {
   name: "MyRepairView",
   data() {
@@ -95,9 +96,19 @@ export default {
       this.$router.push("/student/repairhall");
     },
     fetchOrders() {
-      const student = localStorage.getItem("student");
-      if (!student) return;
-      const account = JSON.parse(student).account;
+        const token = localStorage.getItem("token");
+      if (!token) return;
+
+      // 用 jwtDecode 解析 token
+      let account = "";
+      try {
+        const decoded = jwtDecode(token);
+        account = decoded.account;
+      } catch (err) {
+        console.error("JWT 解析失败:", err);
+        this.$message.error("用户信息获取失败，请重新登录");
+        return;
+      }
 
       this.$axios
         .get("/myorders", { params: { account } })

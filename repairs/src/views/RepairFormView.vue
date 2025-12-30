@@ -70,6 +70,7 @@
         <el-form-item label="上传图片">
           <el-upload
             list-type="picture-card"
+            :action="uploadUrl"
             :auto-upload="false"
             :file-list="fileList"
             :on-change="handleFileChange"
@@ -90,6 +91,9 @@
 </template>
 
 <script>
+import { jwtDecode } from "jwt-decode";
+
+
 export default {
   name: "RepairFormView",
   data() {
@@ -147,10 +151,11 @@ export default {
   },
   mounted() {
     this.form.category = this.categoryName;
-    const student = localStorage.getItem("student");
-    if (student) {
-      const user = JSON.parse(student);
-      this.form.account = user.account || "";
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = jwtDecode(token);
+      this.form.account = decoded.account;
+
     }
   },
   methods: {

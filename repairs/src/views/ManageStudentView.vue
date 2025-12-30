@@ -255,7 +255,9 @@ export default {
     goStudent(){ if(this.$route.path!=='/manage/student') this.$router.push('/manage/student'); },
     goWorker(){ if(this.$route.path!=='/manage/worker') this.$router.push('/manage/worker'); },
     goAdmin(){ if(this.$route.path!=='/manage/admin') this.$router.push('/manage/admin'); },
-    goLogin(){ this.$router.push("/manager/login"); }
+    goLogin(){ 
+      localStorage.removeItem("token");
+      this.$router.push("/manager/login"); }
   }
 };
 </script>

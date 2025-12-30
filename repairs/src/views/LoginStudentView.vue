@@ -49,7 +49,7 @@ export default {
   },
   methods: {
     handleLogin() {
-      if(!this.form.account || !this.form.password){
+      if (!this.form.account || !this.form.password) {
         this.$message.error("账号或密码不能为空");
         return;
       }
@@ -57,9 +57,12 @@ export default {
       this.$axios.post("/login", this.form)
         .then(res => {
           const data = res.data;
-          if(data.code === 1){
+          if (data.code === 1) {
             this.$message.success(data.msg || "登录成功");
-            localStorage.setItem("student", JSON.stringify(data.data));
+
+            // 存 token
+            localStorage.setItem("token", data.data);
+
             this.$router.push("/student/repairhall");
           } else {
             this.$message.error(data.msg || "登录失败");
@@ -69,6 +72,7 @@ export default {
           this.$message.error("服务器异常");
         });
     },
+
     goRegister() {
       this.$router.push("/student/register");
     },

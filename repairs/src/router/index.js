@@ -74,4 +74,19 @@ const router = new VueRouter({
   routes
 })
 
+// 全局路由守卫
+router.beforeEach((to, from, next) => {
+  const publicPages = ['/student/login', '/manager/login', '/student/register'];
+  const authRequired = !publicPages.includes(to.path);
+  const token = localStorage.getItem('token');
+
+  if (authRequired && !token) {
+    // 未登录且访问非公开页面，重定向到学生登录
+    next('/student/login');
+  } else {
+    next(); // 已登录或访问公开页面，放行
+  }
+});
+
+
 export default router
